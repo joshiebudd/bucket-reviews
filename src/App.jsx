@@ -117,9 +117,19 @@ function reducer(state, action) {
       }
       return {
         ...state,
+        deals: [],
         sessions: [...state.sessions, session],
         droppedDeals: [],
         compareSessionId: session.id,
+      }
+    }
+
+    case 'DELETE_SESSION': {
+      const remaining = state.sessions.filter(s => s.id !== action.payload)
+      return {
+        ...state,
+        sessions: remaining,
+        compareSessionId: state.compareSessionId === action.payload ? null : state.compareSessionId,
       }
     }
 
@@ -224,6 +234,7 @@ export default function App() {
           onSave={() => setSessionModal('save')}
           onStartNew={() => setSessionModal('new')}
           onCompare={id => dispatch({ type: 'SET_COMPARE', payload: id })}
+          onDeleteSession={id => dispatch({ type: 'DELETE_SESSION', payload: id })}
           onImport={() => setShowAttioImport(true)}
         />
       </header>

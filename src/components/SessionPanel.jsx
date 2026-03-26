@@ -7,6 +7,7 @@ export default function SessionPanel({
   onSave,
   onStartNew,
   onCompare,
+  onDeleteSession,
   onImport,
 }) {
   const [open, setOpen] = useState(false)
@@ -91,6 +92,13 @@ export default function SessionPanel({
                             Clear
                           </button>
                         )}
+                        <button
+                          className="btn btn-ghost"
+                          style={{ padding: '3px 8px', fontSize: 11, color: '#f87171', borderColor: 'rgba(248,113,113,0.3)' }}
+                          onClick={() => onDeleteSession(session.id)}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   ))}
