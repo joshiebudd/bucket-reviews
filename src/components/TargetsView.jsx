@@ -34,8 +34,9 @@ function Counter({ value, onChange }) {
         style={{
           width: 44, textAlign: 'center', fontSize: 16, fontWeight: 700,
           background: 'var(--bg-app)', border: '1px solid var(--border)',
-          borderRadius: 8, color: 'var(--text-primary)', padding: '4px 0',
-          marginBottom: 0,
+          borderRadius: 8, color: 'var(--text-primary)', padding: '0',
+          marginBottom: 0, height: 36, lineHeight: '36px',
+          MozAppearance: 'textfield', appearance: 'textfield',
         }}
       />
       <button
@@ -138,14 +139,12 @@ export default function TargetsView({ targets, onUpdate }) {
     s.valueActual > 0 && `generated ${formatGBP(s.valueActual)} in value`,
   ].filter(Boolean)
 
-  const em = (text, color) => (
-    <span style={{ color: color || 'var(--text-primary)', fontWeight: 700 }}>{text}</span>
-  )
+  const hi = (text, color) => <span style={{ color, fontWeight: 700 }}>{text}</span>
 
   const goalInputStyle = {
     width: '100%', marginBottom: 0, textAlign: 'center', fontWeight: 600,
     background: 'var(--bg-app)', border: '1px solid var(--border)',
-    borderRadius: 8, fontSize: 14, padding: '10px 8px',
+    borderRadius: 8, fontSize: 16, padding: '14px 10px',
   }
 
   return (
@@ -160,7 +159,7 @@ export default function TargetsView({ targets, onUpdate }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
             {/* KDM meetings */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '10px 8px', background: 'var(--bg-app)', borderRadius: 10, border: '1px solid var(--border)' }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.3 }}>KDM Meetings</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.3 }}>KDM Meetings<br /><span style={{ opacity: 0 }}>—</span></span>
               <Counter value={actuals.kdmMeetings || 0} onChange={v => setActual('kdmMeetings', v)} />
             </div>
             {DEAL_TIERS.map(tier => (
@@ -197,36 +196,76 @@ export default function TargetsView({ targets, onUpdate }) {
       </div>
 
       {/* ── Statement ─────────────────────────────────── */}
-      <div style={{ background: 'var(--bg-raised)', borderRadius: 'var(--radius)', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ background: 'var(--bg-raised)', borderRadius: 'var(--radius)', padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 18 }}>
         <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)' }}>Where we stand</div>
 
-        <p style={{ fontSize: 16, lineHeight: 1.8, color: 'var(--text-secondary)', margin: 0 }}>
-          By {em(DEADLINE)},{' '}
-          {commitParts.length > 0
-            ? <>we said we'd {em(join(commitParts))}{s.hasStretch ? <>, with a stretch of {em(join(stretchParts), '#818cf8')}</> : ''}</>
-            : <>we haven't set any targets yet</>
-          }.
+        {/* Commitment */}
+        <p style={{ fontSize: 20, lineHeight: 1.8, color: 'var(--text-secondary)', margin: 0 }}>
+          By {hi(DEADLINE, '#60a5fa')},{' '}
+          {commitParts.length > 0 ? (
+            <>
+              our {hi('base', '#f59e0b')} was to{' '}
+              {[
+                s.kdmBase > 0 && <>book {hi(s.kdmBase, '#f59e0b')} KDM meetings</>,
+                s.contractBase > 0 && <>close {hi(s.contractBase, '#f59e0b')} contract{s.contractBase !== 1 ? 's' : ''}</>,
+                s.valueBase > 0 && <>generate {hi(formatGBP(s.valueBase), '#f59e0b')} in value</>,
+              ].filter(Boolean).reduce((acc, el, i, arr) => {
+                if (i === 0) return [el]
+                if (i === arr.length - 1) return [...acc, ' and ', el]
+                return [...acc, ', ', el]
+              }, [])}
+              {s.hasStretch && (
+                <> — with a {hi('stretch', '#818cf8')} of{' '}
+                {[
+                  s.kdmStretch > 0 && <>{hi(s.kdmStretch, '#818cf8')} meetings</>,
+                  s.contractStretch > 0 && <>{hi(s.contractStretch, '#818cf8')} contracts</>,
+                  s.valueStretch > 0 && <>{hi(formatGBP(s.valueStretch), '#818cf8')}</>,
+                ].filter(Boolean).reduce((acc, el, i, arr) => {
+                  if (i === 0) return [el]
+                  if (i === arr.length - 1) return [...acc, ' and ', el]
+                  return [...acc, ', ', el]
+                }, [])}</>
+              )}
+            </>
+          ) : (
+            <>we {hi("haven't set any targets yet", '#f87171')}</>
+          )}.
         </p>
 
-        <p style={{ fontSize: 16, lineHeight: 1.8, color: 'var(--text-secondary)', margin: 0 }}>
-          Today is {em(s.todayStr)} — {em(String(s.daysElapsed))} of 90 days in
+        {/* Today */}
+        <p style={{ fontSize: 20, lineHeight: 1.8, color: 'var(--text-secondary)', margin: 0 }}>
+          Today is {hi(s.todayStr, '#60a5fa')} — {hi(String(s.daysElapsed), 'var(--text-primary)')} of 90 days in
           {s.daysRemaining > 0
-            ? <>, with {em(`${s.daysRemaining} days`)} remaining</>
-            : <>, and {em('the deadline has passed', '#f87171')}</>
+            ? <>, with {hi(`${s.daysRemaining} days`, 'var(--text-primary)')} remaining</>
+            : <>, and {hi('the deadline has passed', '#f87171')}</>
           }.
         </p>
 
-        <p style={{ fontSize: 16, lineHeight: 1.8, color: 'var(--text-secondary)', margin: 0 }}>
-          {actualParts.length > 0
-            ? <>So far we've {em(join(actualParts))}</>
-            : <>So far, nothing has been logged yet</>
-          }.
+        {/* Actuals */}
+        <p style={{ fontSize: 20, lineHeight: 1.8, color: 'var(--text-secondary)', margin: 0 }}>
+          {s.hasActuals ? (
+            <>
+              So far we've{' '}
+              {[
+                s.kdmActual > 0 && <>booked {hi(s.kdmActual, '#22c55e')} KDM meeting{s.kdmActual !== 1 ? 's' : ''}</>,
+                s.contractsActual > 0 && <>closed {hi(s.contractsActual, '#22c55e')} contract{s.contractsActual !== 1 ? 's' : ''}</>,
+                s.valueActual > 0 && <>generated {hi(formatGBP(s.valueActual), '#22c55e')} in value</>,
+              ].filter(Boolean).reduce((acc, el, i, arr) => {
+                if (i === 0) return [el]
+                if (i === arr.length - 1) return [...acc, ' and ', el]
+                return [...acc, ', ', el]
+              }, [])}
+            </>
+          ) : (
+            <>So far, {hi('nothing has been logged yet', 'var(--text-muted)')}</>
+          )}.
         </p>
 
+        {/* Trajectory */}
         {s.trajectoryPct !== null && (
-          <p style={{ fontSize: 16, lineHeight: 1.8, color: 'var(--text-secondary)', margin: 0 }}>
-            Based on {s.trajectoryMetric}, we are{' '}
-            {em(
+          <p style={{ fontSize: 20, lineHeight: 1.8, color: 'var(--text-secondary)', margin: 0 }}>
+            Against our base {s.trajectoryMetric} target, we are{' '}
+            {hi(
               `${Math.abs(Math.round(s.trajectoryPct))}% ${s.trajectoryPct >= 0 ? 'ahead of' : 'behind'} trajectory`,
               s.trajectoryPct >= 0 ? '#22c55e' : '#f87171'
             )}.
