@@ -34,8 +34,8 @@ function Counter({ value, onChange }) {
         style={{
           width: 44, textAlign: 'center', fontSize: 16, fontWeight: 700,
           background: 'var(--bg-app)', border: '1px solid var(--border)',
-          borderRadius: 8, color: 'var(--text-primary)', padding: '0',
-          marginBottom: 0, height: 36, lineHeight: '36px',
+          borderRadius: 8, color: 'var(--text-primary)', padding: '8px 0',
+          marginBottom: 0, boxSizing: 'border-box',
           MozAppearance: 'textfield', appearance: 'textfield',
         }}
       />
