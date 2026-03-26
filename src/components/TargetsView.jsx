@@ -13,41 +13,35 @@ const DEAL_TIERS = [
   { key: 'enterprise', label: 'Enterprise', dealValue: 65000 },
 ]
 
+const btnBase = {
+  width: 26, height: 26, borderRadius: '50%', lineHeight: 1,
+  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  flexShrink: 0, border: 'none', padding: 0,
+}
+
 function Counter({ value, onChange }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
       <button
         onClick={() => onChange(Math.max(0, value - 1))}
-        style={{
-          width: 26, height: 26, borderRadius: '50%',
-          background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
-          color: '#f87171', fontSize: 16, fontWeight: 700, lineHeight: 1,
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}
+        style={{ ...btnBase, background: 'rgba(239,68,68,0.2)', color: '#f87171', fontSize: 18 }}
       >−</button>
       <input
-        type="number"
-        min="0"
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
         value={value}
         onChange={e => onChange(Math.max(0, parseInt(e.target.value) || 0))}
         style={{
           width: 44, textAlign: 'center', fontSize: 16, fontWeight: 700,
-          background: 'var(--bg-app)', border: '1px solid var(--border)',
-          borderRadius: 8, color: 'var(--text-primary)', padding: '8px 0',
+          background: '#1e293b', border: '1px solid #334155',
+          borderRadius: 8, color: '#f1f5f9', padding: '8px 0',
           marginBottom: 0, boxSizing: 'border-box',
-          MozAppearance: 'textfield', appearance: 'textfield',
         }}
       />
       <button
         onClick={() => onChange(value + 1)}
-        style={{
-          width: 26, height: 26, borderRadius: '50%',
-          background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
-          color: '#4ade80', fontSize: 16, fontWeight: 700, lineHeight: 1,
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}
+        style={{ ...btnBase, background: 'rgba(34,197,94,0.2)', color: '#4ade80', fontSize: 18 }}
       >+</button>
     </div>
   )
