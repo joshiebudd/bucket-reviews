@@ -2,6 +2,66 @@ import { Fragment } from 'react'
 import { formatGBP } from '../utils/pipeline'
 
 const DEADLINE = '20 Apr 2026'
+const DEADLINE_DATE = new Date('2026-04-20')
+const START_DATE = new Date('2026-01-20') // 90 days before deadline
+
+function trajectoryStatement(targets) {
+  const today = new Date()
+  const totalMs = DEADLINE_DATE - START_DATE
+  const elapsedMs = Math.min(today - START_DATE, totalMs)
+  const progress = Math.max(0, elapsedMs / totalMs) // 0–1
+
+  const actuals = targets?.actuals || {}
+  const goals = targets?.goals || {}
+
+  const kdmActual = actuals.kdmMeetings || 0
+  const contractsActual = DEAL_TIERS.reduce((s, t) => s + (actuals[t.key] || 0), 0)
+  const valueActual = DEAL_TIERS.reduce((s, t) => s + (actuals[t.key] || 0) * t.dealValue, 0)
+
+  const kdmBase = goals.kdmMeetings?.base || 0
+  const kdmStretch = goals.kdmMeetings?.stretch || 0
+  const contractBase = goals.annualContracts?.base || 0
+  const contractStretch = goals.annualContracts?.stretch || 0
+  const valueBase = goals.totalValue?.base || 0
+  const valueStretch = goals.totalValue?.stretch || 0
+
+  const daysTotal = 90
+  const daysElapsed = Math.round(progress * daysTotal)
+  const daysRemaining = Math.max(0, daysTotal - daysElapsed)
+
+  const todayStr = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  // Build commitment sentence
+  const hasBase = kdmBase > 0 || contractBase > 0 || valueBase > 0
+  const hasStretch = kdmStretch > 0 || contractStretch > 0 || valueStretch > 0
+  const hasAny = hasBase || hasStretch
+
+  // Trajectory: compare actual vs expected-at-this-point for primary metric
+  // Use value if set, else contracts, else KDM meetings
+  let trajectoryPct = null
+  let trajectoryMetric = null
+  if (valueBase > 0) {
+    const expected = valueBase * progress
+    trajectoryPct = expected > 0 ? ((valueActual / expected) - 1) * 100 : null
+    trajectoryMetric = 'value'
+  } else if (contractBase > 0) {
+    const expected = contractBase * progress
+    trajectoryPct = expected > 0 ? ((contractsActual / expected) - 1) * 100 : null
+    trajectoryMetric = 'contracts'
+  } else if (kdmBase > 0) {
+    const expected = kdmBase * progress
+    trajectoryPct = expected > 0 ? ((kdmActual / expected) - 1) * 100 : null
+    trajectoryMetric = 'meetings'
+  }
+
+  return {
+    todayStr, daysElapsed, daysRemaining, progress,
+    kdmActual, contractsActual, valueActual,
+    kdmBase, kdmStretch, contractBase, contractStretch, valueBase, valueStretch,
+    hasBase, hasStretch, hasAny,
+    trajectoryPct, trajectoryMetric,
+  }
+}
 
 const DEAL_TIERS = [
   { key: 'solo',       label: 'Solo',       dealValue: 1300  },
@@ -77,6 +137,101 @@ function GoalInput({ value, onChange, prefix }) {
           color: 'var(--text-primary)',
         }}
       />
+    </div>
+  )
+}
+
+function Statement({ targets }) {
+  const s = trajectoryStatement(targets)
+
+  const buildCommitment = () => {
+    const parts = []
+    if (s.kdmBase > 0)       parts.push(`book ${s.kdmBase} KDM meetings`)
+    if (s.contractBase > 0)  parts.push(`close ${s.contractBase} contract${s.contractBase !== 1 ? 's' : ''}`)
+    if (s.valueBase > 0)     parts.push(`generate ${formatGBP(s.valueBase)} in contract value`)
+    return parts
+  }
+
+  const buildStretch = () => {
+    const parts = []
+    if (s.kdmStretch > 0)       parts.push(`${s.kdmStretch} KDM meetings`)
+    if (s.contractStretch > 0)  parts.push(`${s.contractStretch} contract${s.contractStretch !== 1 ? 's' : ''}`)
+    if (s.valueStretch > 0)     parts.push(`${formatGBP(s.valueStretch)} value`)
+    return parts
+  }
+
+  const buildActuals = () => {
+    const parts = []
+    if (s.kdmActual > 0)       parts.push(`booked ${s.kdmActual} KDM meeting${s.kdmActual !== 1 ? 's' : ''}`)
+    if (s.contractsActual > 0) parts.push(`closed ${s.contractsActual} contract${s.contractsActual !== 1 ? 's' : ''}`)
+    if (s.valueActual > 0)     parts.push(`generated ${formatGBP(s.valueActual)} in value`)
+    return parts
+  }
+
+  const commitment = buildCommitment()
+  const stretch = buildStretch()
+  const actuals = buildActuals()
+
+  function joinParts(parts) {
+    if (parts.length === 0) return null
+    if (parts.length === 1) return parts[0]
+    return parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1]
+  }
+
+  const trajectoryColor = s.trajectoryPct === null ? 'var(--text-muted)'
+    : s.trajectoryPct >= 0 ? '#22c55e' : '#f87171'
+
+  const trajectoryText = s.trajectoryPct === null ? null
+    : s.trajectoryPct >= 0
+      ? `${Math.abs(Math.round(s.trajectoryPct))}% ahead of trajectory`
+      : `${Math.abs(Math.round(s.trajectoryPct))}% behind trajectory`
+
+  const pStyle = { fontSize: 15, lineHeight: 1.7, color: 'var(--text-secondary)', margin: 0 }
+  const strong = { color: 'var(--text-primary)', fontWeight: 600 }
+
+  return (
+    <div style={{ background: 'var(--bg-raised)', borderRadius: 'var(--radius)', padding: 24 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 16 }}>
+        Where we stand
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Commitment */}
+        <p style={pStyle}>
+          By <span style={strong}>{DEADLINE}</span>
+          {commitment.length > 0
+            ? <>, we committed to <span style={strong}>{joinParts(commitment)}</span>
+              {stretch.length > 0 && <>, with a stretch of <span style={{ color: '#818cf8', fontWeight: 600 }}>{joinParts(stretch)}</span></>}.
+            </>
+            : <>, we haven't set any targets yet. Use the goals section below to define your base and stretch.</>
+          }
+        </p>
+
+        {/* Today + days */}
+        <p style={pStyle}>
+          Today is <span style={strong}>{s.todayStr}</span> — {s.daysElapsed} of 90 days in
+          {s.daysRemaining > 0
+            ? <>, with <span style={strong}>{s.daysRemaining} days remaining</span>.</>
+            : <> — <span style={{ color: '#f87171', fontWeight: 600 }}>the deadline has passed.</span></>
+          }
+        </p>
+
+        {/* Actuals */}
+        <p style={pStyle}>
+          {actuals.length > 0
+            ? <>So far we've <span style={strong}>{joinParts(actuals)}</span>.</>
+            : <>So far, nothing has been logged yet. Use the counters above to record your progress.</>
+          }
+        </p>
+
+        {/* Trajectory */}
+        {trajectoryText && (
+          <p style={pStyle}>
+            Based on {s.trajectoryMetric === 'value' ? 'contract value' : s.trajectoryMetric === 'contracts' ? 'deals closed' : 'KDM meetings'}, we are{' '}
+            <span style={{ color: trajectoryColor, fontWeight: 700 }}>{trajectoryText}</span>.
+          </p>
+        )}
+      </div>
     </div>
   )
 }
@@ -163,6 +318,9 @@ export default function TargetsView({ targets, onUpdate }) {
           </div>
         </div>
       </div>
+
+      {/* Statement */}
+      <Statement targets={targets} />
 
       {/* Goals */}
       <div style={{ background: 'var(--bg-raised)', borderRadius: 'var(--radius)', padding: 20 }}>
