@@ -149,7 +149,7 @@ export default function TargetsView({ targets, onUpdate }) {
   }
 
   return (
-    <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 760, margin: '0 auto' }}>
+    <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20, flex: 1, overflowY: 'auto', width: '100%' }}>
 
       {/* ── Input strip ───────────────────────────────── */}
       <div style={{ background: 'var(--bg-raised)', borderRadius: 'var(--radius)', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
