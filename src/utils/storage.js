@@ -6,6 +6,7 @@ export function getDefaultState() {
     droppedDeals: [],
     sessions: [],
     compareSessionId: null,
+    targets: null,
   }
 }
 

@@ -12,6 +12,7 @@ import DroppedDealsLog from './components/DroppedDealsLog'
 import DropReasonModal from './components/DropReasonModal'
 import HelpModal from './components/HelpModal'
 import AttioImportModal from './components/AttioImportModal'
+import TargetsView from './components/TargetsView'
 
 function reducer(state, action) {
   switch (action.type) {
@@ -67,7 +68,6 @@ function reducer(state, action) {
     }
 
     case 'IMPORT_DEALS': {
-      // Replace all current deals with imported ones, assign fresh IDs
       const imported = action.payload.map(d => ({
         ...d,
         id: generateId(),
@@ -127,6 +127,10 @@ function reducer(state, action) {
       return { ...state, compareSessionId: action.payload }
     }
 
+    case 'SET_TARGETS': {
+      return { ...state, targets: action.payload }
+    }
+
     default:
       return state
   }
@@ -136,7 +140,7 @@ export default function App() {
   const [state, dispatch] = useReducer(reducer, null, loadState)
   const [activeCard, setActiveCard] = useState(null)
   const [pendingDropDeal, setPendingDropDeal] = useState(null)
-  const [sessionModal, setSessionModal] = useState(null) // 'save' | 'new'
+  const [sessionModal, setSessionModal] = useState(null)
   const [showHelp, setShowHelp] = useState(false)
   const [showAttioImport, setShowAttioImport] = useState(false)
   const [view, setView] = useState('pipeline')
@@ -174,7 +178,6 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <div className="header-brand">
-          <h1>Pipeline</h1>
           <button
             className="btn btn-ghost"
             onClick={() => setShowHelp(true)}
@@ -188,13 +191,16 @@ export default function App() {
         <PipelineBar deals={state.deals} />
 
         <nav className="view-tabs">
-          {['pipeline', 'movement', 'dropped'].map(v => (
+          {['pipeline', 'movement', 'dropped', 'targets'].map(v => (
             <button
               key={v}
               className={`tab ${view === v ? 'active' : ''}`}
               onClick={() => setView(v)}
             >
-              {v === 'pipeline' ? 'Pipeline' : v === 'movement' ? 'Movement' : 'Dropped'}
+              {v === 'pipeline' ? 'Pipeline'
+                : v === 'movement' ? 'Movement'
+                : v === 'dropped' ? 'Dropped'
+                : 'Targets'}
               {v === 'dropped' && state.droppedDeals.length > 0 && (
                 <span style={{
                   marginLeft: 4,
@@ -273,6 +279,13 @@ export default function App() {
           <DroppedDealsLog
             droppedDeals={state.droppedDeals}
             onRestore={deal => dispatch({ type: 'RESTORE_DEAL', payload: { id: deal.id } })}
+          />
+        )}
+
+        {view === 'targets' && (
+          <TargetsView
+            targets={state.targets}
+            onUpdate={t => dispatch({ type: 'SET_TARGETS', payload: t })}
           />
         )}
       </main>
