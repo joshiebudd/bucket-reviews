@@ -145,7 +145,7 @@ export default function TargetsView({ targets, onUpdate }) {
   const goalInputStyle = {
     width: '100%', marginBottom: 0, textAlign: 'center', fontWeight: 600,
     background: 'var(--bg-app)', border: '1px solid var(--border)',
-    borderRadius: 8, fontSize: 13,
+    borderRadius: 8, fontSize: 14, padding: '10px 8px',
   }
 
   return (
