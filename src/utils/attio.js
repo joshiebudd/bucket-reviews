@@ -15,6 +15,8 @@ const STAGE_MAP = {
   'active conversation': 1,
   'deep-dive (with kdm)': 2,
   'deep dive (with kdm)': 2,
+  'kdm deep-dive': 2,
+  'kdm deep dive': 2,
   'deep-dive': 2,
   'deep dive': 2,
   'demo & proposal': 3,
