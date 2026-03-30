@@ -3,7 +3,7 @@ import { formatGBP } from '../utils/pipeline'
 
 const DEADLINE = '20 Apr 2026'
 const DEADLINE_DATE = new Date('2026-04-20')
-const START_DATE = new Date('2026-01-20')
+const START_DATE = new Date('2026-02-09')
 
 const DEAL_TIERS = [
   { key: 'solo',       label: 'Solo',       dealValue: 1300  },
